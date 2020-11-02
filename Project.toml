@@ -3,6 +3,10 @@ uuid = "9b22cc76-15b0-4f8e-a6fe-9d32a17c0c19"
 authors = ["khintz"]
 version = "0.1.0"
 
+[deps]
+DocOpt = "968ba79b-81e4-546f-ab3a-2eecfa62a9db"
+SQLite = "0aa819cd-b072-5ff4-a722-6bc24af294d9"
+
 [compat]
 julia = "1.5.2"
 
