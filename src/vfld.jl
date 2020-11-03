@@ -30,6 +30,7 @@ Options:
   --file-prefix <str>           Prefix of vfld files (eg. "vfldER5") [default: vfld]
   --indir <str>                 Input directory [default: ~/].
   --outdir <str>                Output directory [default: ~/].
+  --sqlite-file <str>           Output to files [default: ~/out.db]
 
 
 Development shortcuts:
@@ -38,15 +39,14 @@ Development shortcuts:
 Notes:
     Assumes the naming of vfld files follows a structure like so:
     vfldER5201310312300 (must end with 12 date characters)
-    etc.
+    
+    It is recommended not to cover more than one month with "vfld_to_sqlite" command.
 """
 
 # 'using' imports everything, while 'import' needs explicit declaration.
 # this using * is similarly to "from package import *" in python
 
-include("vfld_reader.jl")
-include("vfld_sqlite.jl")
-
+include("vfld_to_sqlite.jl")
 
 import Base 
 import Logging
@@ -55,7 +55,6 @@ using DocOpt
 
 import ..logsout
 import .vfld_to_sqlite
-import .vfld_reader
 
 
 
@@ -119,8 +118,6 @@ import .vfld_reader
         files = readdir(args["--indir"], join=false)
         vfld_files = [x for x in files if startswith(x,args["--file-prefix"])]
 
-        nofiles = length(vfld_files)
-        Logging.@info("Found " * string(nofiles) * " files")
 
         vfld_files_within_range = []
         for f in vfld_files
@@ -130,11 +127,13 @@ import .vfld_reader
                 append!(vfld_files_within_range, [args["--indir"]*f])
             end
         end
-        # Now we have all the files we want to convert to a SQLite file.
-        
-        vfld_reader.read(vfld_files_within_range)
-        
 
+        nofiles = length(vfld_files_within_range)
+
+        Logging.@info("Found " * string(nofiles) * " files")
+        # Now we have all the files we want to convert to a SQLite file.
+        vfld_to_sqlite.make_sqlite(vfld_files_within_range, args["--sqlite-file"], Logging)
+        
     end
 
 end
