@@ -2,12 +2,10 @@ module vfld_to_sqlite
 
 import Base
 import SQLite
-import Tables
 import DataFrames
 import Dates
-import Logging
 
-    parameters = Base.Dict([("ID", "ID"),
+    const parameters = Base.Dict([("ID", "ID"),
                     ("LAT", "Latitude"),
                     ("LON", "Longitude"),
                     ("NN", "CloudCover2D"),
@@ -33,30 +31,72 @@ import Logging
                     ("TIME", "Time")])
 
 
-    function make_sqlite(files, sqlfile, Logging)
+    function make_sqlite(cmd_message)
+        """Converts VFLD files to a single SQLite file
+        Assumes that the cmd_message comes in the following format:
+        ("vfld_to_sqlite", "<starttime>", "<endtime>", "<file-prefix>", "<indir>", "<sqlfile>")
+        """
+        @info "Starting make_sqlite"
+        starttime   = convert_string_to_datetime(cmd_message[2])
+        endtime     = convert_string_to_datetime(cmd_message[3])
+        file_prefix = cmd_message[4]
+        indir       = cmd_message[5]
+        sqlfile     = cmd_message[6]
+
+        vfld_files = find_vfld_files(file_prefix, indir, starttime, endtime)
+
+        vfld2sqlite(vfld_files, sqlfile)
+      
+        @info "Finished"
+    end
+
+
+    function convert_string_to_datetime(time)
+        df = Dates.DateFormat("y-m-d-H")
+        return Dates.DateTime(time, df)
+    end
+
+
+    function find_vfld_files(file_prefix::String, indir::String, starttime::Dates.DateTime, endtime::Dates.DateTime)
+
+        files = readdir(indir, join=false)
+        vfld_files = [x for x in files if startswith(x, file_prefix)]
+
+        vfld_files_within_range = []
+        for f in vfld_files
+            dl = Dates.DateTime(f[length(f)-11:length(f)],"yyyymmddHHMM")
+            
+            if dl >= starttime && dl<endtime
+                append!(vfld_files_within_range, [indir*f])
+            end
+        end
+        return vfld_files_within_range
+    end
+
+
+    function vfld2sqlite(vfld_files, sqlfile::String)
 
         target_column_names = [k for (k,v) in parameters]
- 
+
         db = SQLite.DB(sqlfile)
         make_missing_table(db)
 
-        for f in files
-            # First line are dimensions
-            # Second line is header info (how many header lines that are present)
-
-            i = 1
+        for f in vfld_files
+            @info "Reading $f"
+            i=1
+            record = 1
             parameter_count = 1
             processed_header = false
-            record = 1
-            
-            Logging.@debug("Processing file ",f)
 
+            no_records = 0
+            header_lines = 0
+            column_names = []
             for l in eachline(f)
                 if i == 1
-                    global no_records = parse(Int,Base.split(l)[1]) #SubString
+                    no_records = parse(Int,Base.split(l)[1])
                 elseif i == 2
-                    global header_lines = parse(Int,Base.split(l)[1])
-                    global column_names = ["" for k in 1:header_lines]
+                    header_lines = parse(Int,Base.split(l)[1])
+                    column_names = ["" for k in 1:header_lines]
                 elseif i > 2 && i <= header_lines::Int+2 #Parameters in file
                     column_parameter = Base.split(l)[1]
                     column_names[parameter_count] = column_parameter
@@ -64,40 +104,33 @@ import Logging
                 elseif i > header_lines::Int+2 && i <= no_records::Int+header_lines::Int+2
                     #Adding header_lines::Int+2 to simulate resetting counter i
                     if !processed_header
-                        global column_names = append!(["ID", "LAT", "LON"], column_names)
+                        column_names = append!(["ID", "LAT", "LON"], column_names)
                         no_columns = length(column_names)
                         processed_header = true
-                        global data = zeros(Float32, no_records, no_columns)
+                        global data = zeros(Float64, no_records, no_columns)
                     end
 
-                    dataline = parse.(Float32, Base.split(l))
+                    dataline = parse.(Float64, Base.split(l))
                     
                     data[record,:] = dataline
 
                     record+=1
-                end
 
+                end
                 i+=1
             end
 
-        
-            # diff_cols_bool = in(column_names).(target_column_names)
-            # diff_cols = [target_column_names[k] for k in 1:length(target_column_names) if !diff_cols_bool[k] && target_column_names[k] != "TIME"]
-
-            df = DataFrames.DataFrame(Base.zeros(Float32, no_records, length(target_column_names)))
+            df = DataFrames.DataFrame(Base.zeros(Float64, no_records, length(target_column_names)))
 
             DataFrames.rename!(df, target_column_names)
-
 
             df = get_and_put_time(f, df)
             df = set_and_reorder_columns(df, column_names)
 
             inject_data(db, df)
-
+            
         end
 
-        Logging.@info("Created SQLite database")
-        
     end
 
 
