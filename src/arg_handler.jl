@@ -3,9 +3,10 @@ module arg_handler
 const doc = """This is the Julia vfld program
 I can help you with:
 Convert VFLD to SQLite (cmd: vfld_to_sqlite)
+Rename files from date+leadtime to date only (cmd: date_naming)
 
 Usage:
-  vfld.jl [vfld_to_sqlite] [options]
+  vfld.jl [vfld_to_sqlite] [date_naming] [options]
   vfld.jl -h | --help
 
 Options:
@@ -14,20 +15,27 @@ Options:
   --endtime=<YYYY-MM-DD-HH>     end time.
   --file-prefix=<str>           Prefix of vfld files (eg. "vfldER5") [default: vfld]
   --indir=<str>                 Input directory [default: ~/].
+
+vfld_to_sqlite:
   --sqlite-file=<str>           Output to files [default: ~/out.db]
 
+date_naming:
+  --max-leadtime=<int>          Only use up x hours leadtime (eg. 2020-01-01-00+03 will be 2020-01-01-03, only if --max-leadtime is above 2) [default: 2]
+  --leadtime-characters=<int>   How many of the last digits is the leadtime info? [default: 2]
+  --outdir=<str>                Which directory to write renamed files to [default: .]
 
 Development shortcuts:
     julia --project=~/git/vfld/ vfld_util.jl vfld_to_sqlite --starttime=2013-10-01-00 --endtime=2013-10-02-00 --file-prefix=vfld --sqlite-file=/home/kah/git/vfld/scr/test.db --indir=/home/kah/tmp/vfld/ERA5/
+    julia --project=~/git/vfld/ vfld_util.jl date_naming --starttime=2013-10-01-00 --endtime=2020-11-01-00 --file-prefix=vfldDKREA --leadtime-characters=2 --max-leadtime=2 --indir=/home/kah/tmp/vfld/DKREA/201310/ --outdir=/home/kah/tmp/vfld/DKREA_RENAMED/
 
 Notes:
     Assumes the naming of vfld files follows a structure like so:
-    vfldER5201310312300 (must end with 12 date characters)
+    vfldER5201310312300 (must end with 10 or 12 date characters)
     
     It is recommended not to cover more than one month with "vfld_to_sqlite" command.
 """
 
-const avail_commands = ["vfld_to_sqlite"]
+const avail_commands = ["vfld_to_sqlite", "date_naming"]
 
 
 function main_args(args)
@@ -74,6 +82,9 @@ function command_msg(cmds)
         if cmd == "vfld_to_sqlite" && haskey(cmds,cmd) # Determine which command to run
             cmd_message = check_options(cmds,cmd)
             return cmd_message # We only allow one command at a time for now
+        elseif cmd == "date_naming" && haskey(cmds,cmd)
+            cmd_message = check_options(cmds,cmd)
+            return cmd_message
         end
 
     end  
@@ -101,6 +112,32 @@ function check_options(cmds, cmd)
         sqlitefile===missing ? sqlitefile = "~/out.db" : nothing
   
         cmd_message = String.((cmd, starttime, endtime, file_prefix, indir, sqlitefile))
+
+        return cmd_message
+    elseif  cmd == "date_naming"
+
+        starttime = key_check("--starttime", cmds)
+        starttime===missing ? starttime = "1970-01-01-00" : nothing
+
+        endtime = key_check("--endtime", cmds)
+        endtime===missing ? endtime = "2100-01-01-00" : nothing
+
+        file_prefix = key_check("--file-prefix", cmds)
+        file_prefix===missing ? file_prefix = "vfld" : nothing
+
+        indir = key_check("--indir", cmds)
+        indir===missing ? indir = "~/" : nothing
+
+        maxleadtime = key_check("--max-leadtime", cmds)
+        maxleadtime===missing ? maxleadtime = 2 : nothing
+
+        leadtimechars = key_check("--leadtime-characters", cmds)
+        leadtimechars===missing ? leadtimechars = 2 : nothing
+
+        outputdir = key_check("--outdir", cmds)
+        outputdir===missing ? outputdir = "." : nothing
+
+        cmd_message = String.((cmd, starttime, endtime, file_prefix, indir, maxleadtime, leadtimechars, outputdir))
 
         return cmd_message
     end
