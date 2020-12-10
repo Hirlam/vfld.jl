@@ -8,14 +8,15 @@ function rename(cmd_message)
     starttime     = convert_string_to_datetime(cmd_message[2])
     endtime       = convert_string_to_datetime(cmd_message[3])
     file_prefix   = cmd_message[4]
-    indir         = cmd_message[5]
-    leadtimechars = parse(Int, cmd_message[6])
-    maxleadtime   = parse(Int, cmd_message[7])
-    outputdir     = cmd_message[8]
+    file_postfix  = cmd_message[5]
+    indir         = cmd_message[6]
+    leadtimechars = parse(Int, cmd_message[7])
+    maxleadtime   = parse(Int, cmd_message[8])
+    outputdir     = cmd_message[9]
 
     make_output_dir(outputdir)
 
-    rename_vfld_files(file_prefix, indir, starttime, endtime, leadtimechars, maxleadtime, outputdir)
+    rename_vfld_files(file_prefix, file_postfix, indir, starttime, endtime, leadtimechars, maxleadtime, outputdir)
 
     @info "Finished"
 end
@@ -32,11 +33,11 @@ function make_output_dir(dir::String)
 end
 
 
-function rename_vfld_files(file_prefix::String, indir::String, starttime::Dates.DateTime, endtime::Dates.DateTime, 
+function rename_vfld_files(file_prefix::String, file_postfix::String, indir::String, starttime::Dates.DateTime, endtime::Dates.DateTime, 
                          leadtimechars::Integer, maxleadtime::Integer, outdir::String)
 
     files = readdir(indir, join=false)
-    vfld_files = [x for x in files if startswith(x, file_prefix)]
+    vfld_files = [x for x in files if (startswith(x, file_prefix) && endswith(x, file_postfix))]
     vfld_files_within_range = []
 
     for f in vfld_files

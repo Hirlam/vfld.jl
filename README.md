@@ -3,7 +3,9 @@ This is a small utility program for working with vfld files written in Julia. It
 
 # How?
 You can set this package up from the Julia REPL with the `add` command and the url of this repository:\
-`] add https://github.com/khintz/vfld.jl`
+`] add https://github.com/khintz/vfld.jl`\
+Or you can clone the project and `instantiate` dependencies with the Julia REPL:\
+`pkg> instantiate`
 
 The main script to run is `vfld_util.jl` within the `scr/` directory. \
 The Julia source code is found within `src/`

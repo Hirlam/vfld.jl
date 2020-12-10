@@ -43,10 +43,11 @@ import Dates
         starttime   = convert_string_to_datetime(cmd_message[2])
         endtime     = convert_string_to_datetime(cmd_message[3])
         file_prefix = cmd_message[4]
-        indir       = cmd_message[5]
-        sqlfile     = cmd_message[6]
+        file_postfix= cmd_message[5]
+        indir       = cmd_message[6]
+        sqlfile     = cmd_message[7]
 
-        vfld_files = find_vfld_files(file_prefix, indir, starttime, endtime)
+        vfld_files = find_vfld_files(file_prefix, file_postfix, indir, starttime, endtime)
 
         vfld2sqlite(vfld_files, sqlfile)
       
@@ -60,11 +61,11 @@ import Dates
     end
 
 
-    function find_vfld_files(file_prefix::String, indir::String, starttime::Dates.DateTime, endtime::Dates.DateTime)
+    function find_vfld_files(file_prefix::String, file_postfix::String, indir::String, starttime::Dates.DateTime, endtime::Dates.DateTime)
 
         files = readdir(indir, join=false)
-        vfld_files = [x for x in files if startswith(x, file_prefix)]
-
+        vfld_files = [x for x in files if (startswith(x, file_prefix) && endswith(x, file_postfix))]
+        
         vfld_files_within_range = []
         for f in vfld_files
 

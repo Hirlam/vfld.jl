@@ -5,6 +5,8 @@ I can help you with:
 Convert VFLD to SQLite (cmd: vfld_to_sqlite)
 Rename files from date+leadtime to date only (cmd: date_naming)
 
+date_naming: Before use, please ensure if you want to distunguish between analysis and forecasts. If you want that, then date_naming is not for you.
+
 Usage:
   vfld.jl [vfld_to_sqlite] [date_naming] [options]
   vfld.jl -h | --help
@@ -13,7 +15,8 @@ Options:
   -h --help                     Show this screen.
   --starttime=<YYYY-MM-DD-HH>   start time.
   --endtime=<YYYY-MM-DD-HH>     end time.
-  --file-prefix=<str>           Prefix of vfld files (eg. "vfldER5") [default: vfld]
+  --file-prefix=<str>           Prefix of vfld files (eg. "vfldER5") [default: "vfld"]
+  --file-postfix=<str>          Postfix of vfld files (eg. "01") [default: ""]
   --indir=<str>                 Input directory [default: ~/].
 
 vfld_to_sqlite:
@@ -105,13 +108,16 @@ function check_options(cmds, cmd)
         file_prefix = key_check("--file-prefix", cmds)
         file_prefix===missing ? file_prefix = "vfld" : nothing
 
+        file_postfix = key_check("--file-postfix", cmds)
+        file_postfix===missing ? file_postfix = "" : nothing
+
         indir = key_check("--indir", cmds)
         indir===missing ? indir = "~/" : nothing
 
         sqlitefile = key_check("--sqlite-file", cmds)
         sqlitefile===missing ? sqlitefile = "~/out.db" : nothing
   
-        cmd_message = String.((cmd, starttime, endtime, file_prefix, indir, sqlitefile))
+        cmd_message = String.((cmd, starttime, endtime, file_prefix, file_postfix, indir, sqlitefile))
 
         return cmd_message
     elseif  cmd == "date_naming"
@@ -125,6 +131,9 @@ function check_options(cmds, cmd)
         file_prefix = key_check("--file-prefix", cmds)
         file_prefix===missing ? file_prefix = "vfld" : nothing
 
+        file_postfix = key_check("--file-postfix", cmds)
+        file_postfix===missing ? file_postfix = "" : nothing
+
         indir = key_check("--indir", cmds)
         indir===missing ? indir = "~/" : nothing
 
@@ -137,7 +146,7 @@ function check_options(cmds, cmd)
         outputdir = key_check("--outdir", cmds)
         outputdir===missing ? outputdir = "." : nothing
 
-        cmd_message = String.((cmd, starttime, endtime, file_prefix, indir, maxleadtime, leadtimechars, outputdir))
+        cmd_message = String.((cmd, starttime, endtime, file_prefix, file_postfix, indir, maxleadtime, leadtimechars, outputdir))
 
         return cmd_message
     end
