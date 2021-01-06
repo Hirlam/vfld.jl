@@ -130,10 +130,13 @@ import Dates
                         processed_header = true
                         global data = zeros(Float64, no_records, no_columns)
                     end
-
-                    dataline = parse.(Float64, Base.split(l))
                     
-                    data[record,:] = dataline
+                    try
+                       dataline = parse.(Float64, Base.split(l))
+                       data[record,:] = dataline
+                    catch e
+                       println("ERROR: Could not convert string to Float64, skipping this line")
+                    end
 
                     record+=1
 
