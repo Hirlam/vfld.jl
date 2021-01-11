@@ -201,7 +201,13 @@ import Dates
 
     function inject_data(db, dataTable)
         """Inject data into SQLite Table"""
-       SQLite.load!(dataTable, db, "vfld")
+       try
+           SQLite.load!(dataTable, db, "vfld")
+       catch e
+           if isa(e, LoadError)
+             println("SQLite.SQLiteException, no such savepoint: Error caught but possibly data loss") 
+           end
+       end
     end
 
 
