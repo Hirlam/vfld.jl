@@ -4,5 +4,7 @@ jobs:
   TestBuild:
     runs-on: ubuntu-latest
     steps:
+      - name: Check directory
+        run: ls -lh
       - name: Test Build
         run: julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
