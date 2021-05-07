@@ -2,10 +2,21 @@
 This is a small utility program for working with vfld files written in Julia. It is work in progress and more commands and options may come along the way. The list below is updated whenever new commands are available.
 
 # How?
-You can set this package up from the Julia REPL with the `add` command and the url of this repository:\
-`] add https://github.com/khintz/vfld.jl`\
-Or you can clone the project and `instantiate` dependencies with the Julia REPL:\
-`pkg> instantiate`
+You can set this package up from the Julia REPL with the `add` command and the url of this repository:
+```
+julia> ]
+pkg> add https://github.com/khintz/vfld.jl
+```
+Which will make it possible to import the modules into your own scripts. 
+
+If you rather just use the program as a CLI, I recommend to clone and build it like so:
+```
+git clone https://github.com/khintz/vfld.jl
+```
+and instantiate from the Julia REPL:
+```
+pkg> instantiate
+```
 
 The main script to run is `vfld_util.jl` within the `scr/` directory. \
 The Julia source code is found within `src/`
