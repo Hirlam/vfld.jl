@@ -1,3 +1,6 @@
+![Test Build](https://github.com/khintz/vfld.jl/actions/workflows/TestBuild.yml/badge.svg)
+[![codecov](https://codecov.io/gh/khintz/vfld.jl/branch/main/graph/badge.svg?token=MBQFPOXAQ4)](https://codecov.io/gh/khintz/vfld.jl)
+
 # vfld.jl
 This is a small utility program for working with vfld files written in Julia. It is work in progress and more commands and options may come along the way. The list below is updated whenever new commands are available.
 
