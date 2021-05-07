@@ -1,4 +1,4 @@
-name: CompatHelper
+name: TestBuild
 on:
   schedule:
     - cron: 0 0 * * *
